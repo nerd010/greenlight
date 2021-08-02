@@ -6,7 +6,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (app *application) routers() *httprouter.Router {
+func (app *application) routes() *httprouter.Router {
 	router := httprouter.New()
 
 	// Convert the notFoundResponse() helper to a http.Handler using the
