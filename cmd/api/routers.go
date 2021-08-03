@@ -29,7 +29,8 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateMovieHandler)
 	// Add the route for the DELETE /v1/movies/:id endpoint.
 	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
-
+	// Add the route for the POST /v1/users endpoint.
+	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	// Wrap the router with the panic recovery middleware.
 	// Wrap the router with the rateLimit() middleware.
 	return app.recoverPanic(app.rateLimit(router))
