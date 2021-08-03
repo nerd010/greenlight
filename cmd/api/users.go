@@ -33,6 +33,14 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		Activated: false,
 	}
 
+	// Use the Password.Set() method to generate and store the hashed and plaintext
+	// passwords.
+	err = user.Password.Set(input.Password)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	v := validator.New()
 
 	// Validate the user struct and return the error messages to the client if any of
