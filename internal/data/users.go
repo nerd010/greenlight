@@ -16,6 +16,10 @@ var (
 	ErrDuplicateEmail = errors.New("duplicate email")
 )
 
+const (
+	ErrPqEmail = `pq: duplicate key value violates unique constraint "users_email_key"`
+)
+
 // Create a UserModel struct which wraps the connection pool.
 type UserModel struct {
 	DB *sql.DB
@@ -76,7 +80,7 @@ func (p *password) Matches(plaintextPassword string) (bool, error) {
 }
 
 func ValidateEmail(v *validator.Validator, email string) {
-	v.Check(email != ",", "email", "must be provided")
+	v.Check(email != "", "email", "must be provided")
 	v.Check(validator.Matches(email, validator.EmailRX), "email", "must be a valid email address")
 }
 
@@ -131,7 +135,7 @@ func (m UserModel) Insert(user *User) error {
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.CreatedAt, &user.Version)
 	if err != nil {
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "user_email_key"`:
+		case err.Error() == ErrPqEmail:
 			return ErrDuplicateEmail
 		default:
 			return err
@@ -203,7 +207,7 @@ func (m UserModel) Update(user *User) error {
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Version)
 	if err != nil {
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+		case err.Error() == ErrPqEmail:
 			return ErrDuplicateEmail
 		case errors.Is(err, sql.ErrNoRows):
 			return ErrEditConflict
