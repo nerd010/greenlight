@@ -10,11 +10,10 @@ import (
 )
 
 func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, r *http.Request) {
-
 	// Parse the email and password from the request body.
 	var input struct {
-		Email    string `json:"json:email"`
-		Password string `json:"json:password"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
 	err := app.readJSON(w, r, &input)
