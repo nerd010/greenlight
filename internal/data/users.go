@@ -15,6 +15,7 @@ import (
 // Define a custom ErrDuplicateEmail error.
 var (
 	ErrDuplicateEmail = errors.New("duplicate email")
+	AnonymousUser     = &User{} // Declare a new AnonymousUser variable.
 )
 
 const (
@@ -268,4 +269,9 @@ func (m UserModel) GetForToken(tokenScope, TokenPlaintext string) (*User, error)
 
 	// Return the matching user.
 	return &user, nil
+}
+
+// Check if a User instance is the AnonymousUser.
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
 }
