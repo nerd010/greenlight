@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/felixge/httpsnoop"
 
 	"sync"
 	"time"
@@ -311,23 +314,27 @@ func (app *application) metrics(next http.Handler) http.Handler {
 	totalRequestsReceived := expvar.NewInt("total_requests_received")
 	totalResponsesSent := expvar.NewInt("total_responses_sent")
 	totalProcessingTimeMicroseconds := expvar.NewInt("total_processing_time_μs")
+	// Declare a new expvar map to hold the count of responses for each HTTP status
+	// code.
+	totalResponsesSentByStatus := expvar.NewMap("total_responses_sent_by_status")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Record the time that we started to process the request.
-		start := time.Now()
-
 		// Use the Add() method to increment the number of requests received by 1.
 		totalRequestsReceived.Add(1)
 
-		// Call the next handler in the chain.
-		next.ServeHTTP(w, r)
+		metrics := httpsnoop.CaptureMetrics(next, w, r)
 
 		// On the way back up the middleware chain, increment the number of responses
 		// sent by 1.
 		totalResponsesSent.Add(1)
-		// Calculate the number of microseconds since we began to process the request,
-		// then increment the total processing time by this amount.
-		duration := time.Now().Sub(start).Microseconds()
-		totalProcessingTimeMicroseconds.Add(duration)
+
+		// Get the request processing time in microseconds from httpsnoop and increment
+		// the cumulative processing time.
+		totalProcessingTimeMicroseconds.Add(metrics.Duration.Microseconds())
+
+		// Use the Add() method to increment the count for the given status code by 1.
+		// Note that the expvar map is string-keyed, so we need to use the strconv.Itoa()
+		// function to convert the status code (which is an integer) to a string.
+		totalResponsesSentByStatus.Add(strconv.Itoa(metrics.Code), 1)
 	})
 }
