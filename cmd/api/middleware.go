@@ -4,12 +4,12 @@ import (
 	"errors"
 	"expvar"
 	"fmt"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/felixge/httpsnoop"
+	"github.com/tomasen/realip"
 
 	"sync"
 	"time"
@@ -89,15 +89,18 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Only carry out the check if rate limiting is enabled.
 		if app.config.limiter.enabled {
+			// Use the realip.FromRequest() function to get the client's real IP address.
+			ip := realip.FromRequest(r)
+
 			// Call limiter.Allow() to see if the request is permitted, and if it's not,
 			// then we call the rateLimitExceededResponse() helper to return a 429 Too Many
 			// Requests response (we will create this helper in a minute).
 			// Extract the client's IP address from the request.
-			ip, _, err := net.SplitHostPort(r.RemoteAddr)
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-				return
-			}
+			// ip, _, err := net.SplitHostPort(r.RemoteAddr)
+			// if err != nil {
+			// 	app.serverErrorResponse(w, r, err)
+			// 	return
+			// }
 
 			// Lock the mutex to prevent this code from being executed concurrently.
 			mu.Lock()
@@ -108,7 +111,9 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 				// Create and add a new client struct to the map if it doesn't already exist.
 				// Use the requests-per-second and burst values from the config
 				// struct.
-				clients[ip] = &client{limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps), app.config.limiter.burst)}
+				clients[ip] = &client{
+					limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps), app.config.limiter.burst),
+				}
 			}
 
 			// Update the last seen time for the client.
