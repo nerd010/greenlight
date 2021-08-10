@@ -23,6 +23,10 @@ import (
 // number as a hard-coded global constant.
 const version = "1.0.0"
 
+// Create a buildTime variable to hold the executable binary build time. Note that this
+// must be a string type, as the -X linker flag will only work with string variables.
+var buildTime string
+
 // Define a config struct to hold all the configuration settings for our application.
 // For now, the only configuration settings will be the network port that we want the
 // server to listen on, and the name of the current operating environment for the
@@ -128,6 +132,7 @@ func main() {
 	// immediately exit.
 	if *displayVersion {
 		fmt.Printf("Version:\t%s\n", version)
+		fmt.Printf("Build time: \t%s\n", buildTime)
 		os.Exit(0)
 	}
 	// Initialize a new logger which writes messages to the standard out stream,
