@@ -74,9 +74,14 @@ vendor:
 # BUILD
 # ==================================================================================== #
 
+# current_time = $(shell date --iso-8601=seconds)  illegal option
+# %z: ISO 8601格式的UTC偏移量; %T: 	与“%H:%M:%S”相同; %F: 年-月-日 [Y%-m%-d%]
+current_time = $(shell date "+%FT%T%z")
+linker_flags = '-s -w -X main.buildTime=${current_time}'
+
 ## build/api: build the cmd/api application
 .PHONY: build/api
 build/api:
 	@echo 'Building cmd/api...'
-	go build -ldflags='-s -w' -o=./bin/api ./cmd/api
-	GOOS=linux GOARCH=arm64 go build -ldflags='-s -w' -o=./bin/linux_arm64/api ./cmd/api
+	go build -ldflags=${linker_flags} -o=./bin/api ./cmd/api
+	GOOS=linux GOARCH=amd64 go build -ldflags=${linker_flags} -o=./bin/linux_amd64/api ./cmd/api
