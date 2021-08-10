@@ -77,7 +77,8 @@ vendor:
 # current_time = $(shell date --iso-8601=seconds)  illegal option
 # %z: ISO 8601格式的UTC偏移量; %T: 	与“%H:%M:%S”相同; %F: 年-月-日 [Y%-m%-d%]
 current_time = $(shell date "+%FT%T%z")
-linker_flags = '-s -w -X main.buildTime=${current_time}'
+git_description = $(shell git describe --alwarys --drity)
+linker_flags = '-s -w -X main.buildTime=${current_time} -X main.version=${git_description}'
 
 ## build/api: build the cmd/api application
 .PHONY: build/api
