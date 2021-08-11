@@ -93,14 +93,27 @@ build/api:
 # ==================================================================================== #
 
 # change xx.xx.xx.xx to your host id
-production_host_id = 'xx.xx.xx.xx'
+production_host_ip = 'xx.xx.xx.xx'
 
-.PHONY: production/connect
+## production/connect: connect to the production server
+.PHONY:	production/connect
 production/connect:
-	ssh greenlight@${production_host_id}
+	ssh greenlight@${production_host_ip}
 
 
-.PHONY: production/deploy/api
+## production/deploy/api: deploy the api to production
+.PHONY:	production/deploy/api
 production/deploy/api:
-	rsync -rP --delete ./bin/linux_amd64/api ./migrations greenlight@${production_host_id}:~
-	ssh -t greenlight@${production_host_id} 'migrate -path ~/migrations -database $$GREENLIGHT_DB_DSN up'
+	rsync -rP --delete ./bin/linux_amd64/api ./migrations greenlight@${production_host_ip}:~
+	ssh -t greenlight@${production_host_ip} 'migrate -path ~/migrations -database $$GREENLIGHT_DB_DSN up'
+
+
+## production/configure/api.service: configure the production systemd api.service file
+.PHONY:	production/configure/api.service
+production/configure/api.service:
+	rsync -P ./remote/production/api.service greenlight@${production_host_ip}:~
+	ssh -t greenlight@${production_host_ip} '\
+		sudo mv ~/api.service /etc/systemd/system/ \
+		&& sudo systemctl enable api \
+		&& sudo systemctl restart api \
+		'
