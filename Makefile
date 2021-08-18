@@ -122,7 +122,7 @@ production/configure/api.service:
 
 ## production/configure/caddyfile: configure the production Caddyfile
 .PHONY: production/configure/caddyfile
-production/configure/caddyfile
+production/configure/caddyfile:
 	rsync -P ./remote/production/Caddyfile greenlight@${production_host_ip}:~
 	ssh -t greenlight@${production_host_ip} '\
 		sudo mv ~/Caddyfile /etc/caddy/ \
